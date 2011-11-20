@@ -117,7 +117,7 @@ class NZBSerienProvider(generic.NZBProvider):
 
         return results
 
-    def getQuality(self, item):
+    def getQuality(self, item, anime=False):
         (title,url) = item
         quality = Quality.nameQuality(title)
         return quality

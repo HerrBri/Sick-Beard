@@ -25,13 +25,14 @@ import urllib
 import re
 import threading
 import datetime
+import random
 
 from Cheetah.Template import Template
 import cherrypy.lib
 
 import sickbeard
 
-from sickbeard import config
+from sickbeard import config, sab
 from sickbeard import history, notifiers, processTV
 from sickbeard import tv, ui
 from sickbeard import logger, helpers, exceptions, classes, db
@@ -44,6 +45,7 @@ from sickbeard.common import Quality, Overview, statusStrings
 from sickbeard.common import SNATCHED, DOWNLOADED, SKIPPED, UNAIRED, IGNORED, ARCHIVED, WANTED
 from sickbeard.exceptions import ex
 from sickbeard.scene_exceptions import get_scene_exceptions
+from sickbeard.webapi import Api
 
 from lib.tvdb_api import tvdb_api
 from sickbeard.blackandwhitelist import *
@@ -357,6 +359,9 @@ class Manage:
 
         paused_all_same = True
         last_paused = None
+        
+        anime_all_same = True
+        last_anime = None
 
         quality_all_same = True
         last_quality = None
@@ -377,6 +382,13 @@ class Manage:
                 else:
                     last_paused = curShow.paused
 
+            if anime_all_same:
+                # if we had a value already and this value is different then they're not all the same
+                if last_anime not in (curShow.is_anime, None):
+                    anime_all_same = False
+                else:
+                    last_anime = curShow.is_anime
+
             if season_folders_all_same:
                 if last_season_folders not in (None, curShow.seasonfolders):
                     season_folders_all_same = False
@@ -391,6 +403,7 @@ class Manage:
 
         t.showList = toEdit
         t.paused_value = last_paused if paused_all_same else None
+        t.anime_value = last_anime if anime_all_same else None
         t.season_folders_value = last_season_folders if season_folders_all_same else None
         t.quality_value = last_quality if quality_all_same else None
         t.root_dir_list = root_dir_list
@@ -398,7 +411,7 @@ class Manage:
         return _munge(t)
 
     @cherrypy.expose
-    def massEditSubmit(self, paused=None, season_folders=None, quality_preset=False,
+    def massEditSubmit(self, paused=None, anime=None, season_folders=None, quality_preset=False,
                        anyQualities=[], bestQualities=[], toEdit=None, *args, **kwargs):
 
         dir_map = {}
@@ -430,6 +443,12 @@ class Manage:
             else:
                 new_paused = True if paused == 'enable' else False
             new_paused = 'on' if new_paused else 'off'
+            
+            if anime == 'keep':
+                new_anime = showObj.is_anime
+            else:
+                new_anime = True if anime == 'enable' else False
+            new_anime = 'on' if new_anime else 'off'
 
             if season_folders == 'keep':
                 new_season_folders = showObj.seasonfolders
@@ -440,7 +459,7 @@ class Manage:
             if quality_preset == 'keep':
                 anyQualities, bestQualities = Quality.splitQuality(showObj.quality)
             
-            curErrors += Home().editShow(curShow, new_show_dir, anyQualities, bestQualities, new_season_folders, new_paused, directCall=True)
+            curErrors += Home().editShow(curShow, new_show_dir, anyQualities, bestQualities, new_season_folders, new_paused, new_anime, directCall=True)
 
             if curErrors:
                 logger.log(u"Errors: "+str(curErrors), logger.ERROR)
@@ -639,10 +658,33 @@ class ConfigGeneral:
 
         sickbeard.ANIME_DEFAULT = int(anime)
 
-    
+    @cherrypy.expose
+    def generateKey(self):
+        """ Return a new randomized API_KEY
+        """
+
+        try:
+            from hashlib import md5
+        except ImportError:
+            from md5 import md5
+        
+        # Create some values to seed md5
+        t = str(time.time())
+        r = str(random.random())
+        
+        # Create the md5 instance and give it the current time
+        m = md5(t)
+        
+        # Update the md5 instance with the random variable
+        m.update(r)
+
+        # Return a hex digest of the md5, eg 49f68a5c8493ec2c0bf489821c21fc3b
+        logger.log(u"New API generated")
+        return m.hexdigest()
+
     @cherrypy.expose
     def saveGeneral(self, log_dir=None, web_port=None, web_log=None, web_ipv6=None,
-                    launch_browser=None, web_username=None,
+                    launch_browser=None, web_username=None, use_api=None, api_key=None,
                     web_password=None, version_notify=None):
 
         results = []
@@ -677,6 +719,14 @@ class ConfigGeneral:
         sickbeard.WEB_LOG = web_log
         sickbeard.WEB_USERNAME = web_username
         sickbeard.WEB_PASSWORD = web_password
+
+        if use_api == "on":
+            use_api = 1
+        else:
+            use_api = 0
+
+        sickbeard.USE_API = use_api
+        sickbeard.API_KEY = api_key
 
         config.change_VERSION_NOTIFY(version_notify)
 
@@ -1182,8 +1232,10 @@ class ConfigNotifications:
                           use_prowl=None, prowl_notify_onsnatch=None, prowl_notify_ondownload=None, prowl_api=None, prowl_priority=0, 
                           use_twitter=None, twitter_notify_onsnatch=None, twitter_notify_ondownload=None, 
                           use_notifo=None, notifo_notify_onsnatch=None, notifo_notify_ondownload=None, notifo_username=None, notifo_apisecret=None,
+                          use_boxcar=None, boxcar_notify_onsnatch=None, boxcar_notify_ondownload=None, boxcar_username=None,
                           use_libnotify=None, libnotify_notify_onsnatch=None, libnotify_notify_ondownload=None,
-                          use_nmj=None, nmj_host=None, nmj_database=None, nmj_mount=None, use_synoindex=None):
+                          use_nmj=None, nmj_host=None, nmj_database=None, nmj_mount=None, use_synoindex=None,
+                          use_trakt=None, trakt_username=None, trakt_password=None, trakt_api=None):
 
         results = []
 
@@ -1289,6 +1341,20 @@ class ConfigNotifications:
         else:
             use_notifo = 0
 
+        if boxcar_notify_onsnatch == "on":
+            boxcar_notify_onsnatch = 1
+        else:
+            boxcar_notify_onsnatch = 0
+
+        if boxcar_notify_ondownload == "on":
+            boxcar_notify_ondownload = 1
+        else:
+            boxcar_notify_ondownload = 0
+        if use_boxcar == "on":
+            use_boxcar = 1
+        else:
+            use_boxcar = 0
+
         if use_nmj == "on":
             use_nmj = 1
         else:
@@ -1298,6 +1364,11 @@ class ConfigNotifications:
             use_synoindex = 1
         else:
             use_synoindex = 0
+
+        if use_trakt == "on":
+            use_trakt = 1
+        else:
+            use_trakt = 0
 
         sickbeard.USE_XBMC = use_xbmc
         sickbeard.XBMC_NOTIFY_ONSNATCH = xbmc_notify_onsnatch
@@ -1339,6 +1410,11 @@ class ConfigNotifications:
         sickbeard.NOTIFO_USERNAME = notifo_username
         sickbeard.NOTIFO_APISECRET = notifo_apisecret
 
+        sickbeard.USE_BOXCAR = use_boxcar
+        sickbeard.BOXCAR_NOTIFY_ONSNATCH = boxcar_notify_onsnatch
+        sickbeard.BOXCAR_NOTIFY_ONDOWNLOAD = boxcar_notify_ondownload
+        sickbeard.BOXCAR_USERNAME = boxcar_username
+
         sickbeard.USE_LIBNOTIFY = use_libnotify == "on"
         sickbeard.LIBNOTIFY_NOTIFY_ONSNATCH = libnotify_notify_onsnatch == "on"
         sickbeard.LIBNOTIFY_NOTIFY_ONDOWNLOAD = libnotify_notify_ondownload == "on"
@@ -1349,6 +1425,11 @@ class ConfigNotifications:
         sickbeard.NMJ_MOUNT = nmj_mount
 
         sickbeard.USE_SYNOINDEX = use_synoindex
+
+        sickbeard.USE_TRAKT = use_trakt
+        sickbeard.TRAKT_USERNAME = trakt_username
+        sickbeard.TRAKT_PASSWORD = trakt_password
+        sickbeard.TRAKT_API = trakt_api
 
         sickbeard.save_config()
 
@@ -1920,6 +2001,18 @@ class Home:
     postprocess = HomePostProcess()
 
     @cherrypy.expose
+    def testSABnzbd(self, host=None, username=None, password=None, apikey=None):
+        connection, accesMsg = sab.getSabAccesMethod(host, username, password, apikey)
+        if connection:
+            authed, authMsg = sab.testAuthentication(host, username, password, apikey) #@UnusedVariable
+            if authed:
+                return "Success. Connected and authenticated"
+            else:
+                return "Authentication failed. SABnzbd expects '"+accesMsg+"' as authentication method"
+        else:
+            return "Unable to connect to host"
+
+    @cherrypy.expose
     def testGrowl(self, host=None, password=None):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
@@ -1955,6 +2048,16 @@ class Home:
             return "Error sending Notifo notification"
 
     @cherrypy.expose
+    def testBoxcar(self, username=None):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+
+        result = notifiers.boxcar_notifier.test_notify(username)
+        if result:
+            return "Boxcar notification succeeded. Check your Boxcar clients to make sure it worked"
+        else:
+            return "Error sending Boxcar notification"
+
+    @cherrypy.expose
     def twitterStep1(self):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
@@ -1986,7 +2089,7 @@ class Home:
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
         result = notifiers.xbmc_notifier.test_notify(urllib.unquote_plus(host), username, password)
-        if result:
+        if len(result.split(":")) > 2 and 'OK' in result.split(":")[2]:
             return "Test notice sent successfully to "+urllib.unquote_plus(host)
         else:
             return "Test notice failed to "+urllib.unquote_plus(host)
@@ -2029,6 +2132,16 @@ class Home:
             return '{"message": "Got settings from %(host)s", "database": "%(database)s", "mount": "%(mount)s"}' % {"host": host, "database": sickbeard.NMJ_DATABASE, "mount": sickbeard.NMJ_MOUNT}
         else:
             return '{"message": "Failed! Make sure your Popcorn is on and NMJ is running. (see Log & Errors -> Debug for detailed info)", "database": "", "mount": ""}'
+
+    @cherrypy.expose
+    def testTrakt(self, api=None, username=None, password=None):
+        cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
+
+        result = notifiers.trakt_notifier.test_notify(api, username, password)
+        if result:
+            return "Test notice sent successfully to Trakt"
+        else:
+            return "Test notice failed to Trakt"
 
 
     @cherrypy.expose
@@ -2617,6 +2730,7 @@ class UI:
 
         return json.dumps(messages)
 
+   
 class WebInterface:
 
     @cherrypy.expose
@@ -2767,6 +2881,8 @@ class WebInterface:
     config = Config()
 
     home = Home()
+    
+    api = Api()
 
     browser = browser.WebFileBrowser()
 

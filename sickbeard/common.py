@@ -27,8 +27,7 @@ mediaExtensions = ['avi', 'mkv', 'mpg', 'mpeg', 'wmv',
                    'ogm', 'mp4', 'iso', 'img', 'divx',
                    'm2ts', 'm4v', 'ts', 'flv', 'f4v',
                    'mov', 'rmvb', 'vob', 'dvr-ms', 'wtv',
-                   'asf'
-                   ]
+                   'asf','ogv']
 
 ### Other constants
 MULTI_EP_RESULT = -1
@@ -131,9 +130,9 @@ class Quality:
     def nameQualityNormal(name):
         checkName = lambda list, func: func([re.search(x, name, re.I) for x in list])
         
-        if checkName(["pdtv.xvid", "hdtv.xvid", "dsr.xvid"], any) and not checkName(["720p"], all):
+        if checkName(["(pdtv|hdtv|dsr).(xvid|x264)"], all) and not checkName(["(720|1080)[pi]"], all):
             return Quality.SDTV
-        elif checkName(["dvdrip.xvid", "bdrip.xvid", "dvdrip.divx", "dvdrip.ws.xvid"], any) and not checkName(["720p"], all):
+        elif checkName(["(dvdrip|bdrip)(.ws)?.(xvid|divx|x264)"], any) and not checkName(["(720|1080)[pi]"], all):
             return Quality.SDDVD
         elif checkName(["720p", "hdtv", "x264"], all) or checkName(["hr.ws.pdtv.x264"], any):
             return Quality.HDTV
@@ -151,20 +150,21 @@ class Quality:
         checkName = lambda list, func: func([re.search(x, name, re.I) for x in list])
         
         
-        blueRayOptions = checkName(["bluray","blu-ray"],any)
-        hdOptions = checkName(["720p","1280x720"], any)
+        blueRayOptions = checkName(["bluray", "blu-ray"], any)
+        hdOptions = checkName(["720p", "1280x720"], any)
+        fullHD = checkName(["1080p", "1920x1080"], any)
 
-        if checkName(["360p","XviD"], any):
+        if checkName(["360p", "XviD"], any):
             return Quality.SDTV
-        elif checkName(["dvd","480p","848x480"], any):
+        elif checkName(["dvd", "480p", "848x480"], any):
             return Quality.SDDVD
-        elif hdOptions and not blueRayOptions:
+        elif hdOptions and not blueRayOptions and not fullHD:
             return Quality.HDTV
-        elif hdOptions and not blueRayOptions:
+        elif hdOptions and not blueRayOptions and not fullHD:
             return Quality.HDWEBDL
-        elif blueRayOptions and hdOptions:
+        elif blueRayOptions and hdOptions and not fullHD:
             return Quality.HDBLURAY
-        elif blueRayOptions and checkName(["1080p", "1920x1080"],any):
+        elif blueRayOptions or fullHD:
             return Quality.FULLHDBLURAY
         else:
             return Quality.assumeQuality(name)

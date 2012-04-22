@@ -167,6 +167,7 @@ def makeSceneSeasonSearchString (show, segment, extraSearchType=None):
         if extraSearchType == "nzbmatrix":
             seasonStrings.append("%ix" % segment)
 
+    bwl = BlackAndWhiteList(show.tvdbid)
     showNames = set(makeSceneShowSearchStrings(show))
 
     toReturn = []
@@ -182,7 +183,11 @@ def makeSceneSeasonSearchString (show, segment, extraSearchType=None):
             # for providers that don't allow multiple searches in one request we only search for Sxx style stuff
             else:
                 for cur_season in seasonStrings:
-                    toReturn.append(curShow + "." + cur_season)
+                    if len(bwl.whiteList) > 0:
+                        for keyword in bwl.whiteList:
+                            toReturn.append(keyword + '.' + curShow+ "." + cur_season)
+                    else:
+                        toReturn.append(curShow + "." + cur_season)
         
         # nzbmatrix is special, we build a search string just for them
         elif extraSearchType == "nzbmatrix":
@@ -252,8 +257,14 @@ def isGoodResult(name, show, log=True):
     for curName in set(showNames):
         if not show.is_anime:
             escaped_name = re.sub('\\\\[\\s.-]', '\W+', re.escape(curName))
+<<<<<<< HEAD
             curRegex = escaped_name + '\W+(?:(?:S\d[\dE._ -])|(?:\d\d?x)|(?:\d{4}\W\d\d\W\d\d)|(?:(?:part|pt)[\._ -]?(\d|[ivx]))|(Season|Staffel)\W+\d+\W+|E\d+\W+)'
             # curRegex = '^' + escaped_name + '\W+(?:(?:S\d[\dE._ -])|(?:\d\d?x)|(?:\d{4}\W\d\d\W\d\d)|(?:(?:part|pt)[\._ -]?(\d|[ivx]))|Season\W+\d+\W+|E\d+\W+)'
+=======
+            if show.startyear:
+                escaped_name += "(?:\W+"+str(show.startyear)+")?"
+            curRegex = '^' + escaped_name + '\W+(?:(?:S\d[\dE._ -])|(?:\d\d?x)|(?:\d{4}\W\d\d\W\d\d)|(?:(?:part|pt)[\._ -]?(\d|[ivx]))|Season\W+\d+\W+|E\d+\W+)'
+>>>>>>> 23ab5c74d399e0e202c952dcbae910fec793b9e1
         else:
             escaped_name = re.sub('\\\\[\\s.-]', '[\W_]+', re.escape(curName))
             # FIXME: find a "automatically-created" regex for anime releases # test at http://regexr.com?2uon3

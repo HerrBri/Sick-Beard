@@ -257,14 +257,11 @@ def isGoodResult(name, show, log=True):
     for curName in set(showNames):
         if not show.is_anime:
             escaped_name = re.sub('\\\\[\\s.-]', '\W+', re.escape(curName))
-<<<<<<< HEAD
             curRegex = escaped_name + '\W+(?:(?:S\d[\dE._ -])|(?:\d\d?x)|(?:\d{4}\W\d\d\W\d\d)|(?:(?:part|pt)[\._ -]?(\d|[ivx]))|(Season|Staffel)\W+\d+\W+|E\d+\W+)'
             # curRegex = '^' + escaped_name + '\W+(?:(?:S\d[\dE._ -])|(?:\d\d?x)|(?:\d{4}\W\d\d\W\d\d)|(?:(?:part|pt)[\._ -]?(\d|[ivx]))|Season\W+\d+\W+|E\d+\W+)'
-=======
             if show.startyear:
                 escaped_name += "(?:\W+"+str(show.startyear)+")?"
             curRegex = '^' + escaped_name + '\W+(?:(?:S\d[\dE._ -])|(?:\d\d?x)|(?:\d{4}\W\d\d\W\d\d)|(?:(?:part|pt)[\._ -]?(\d|[ivx]))|Season\W+\d+\W+|E\d+\W+)'
->>>>>>> 23ab5c74d399e0e202c952dcbae910fec793b9e1
         else:
             escaped_name = re.sub('\\\\[\\s.-]', '[\W_]+', re.escape(curName))
             # FIXME: find a "automatically-created" regex for anime releases # test at http://regexr.com?2uon3

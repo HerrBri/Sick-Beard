@@ -49,9 +49,6 @@ class CheckVersion():
 
     def run(self):
         self.check_for_new_version()
-        
-        # refresh scene exceptions too
-        scene_exceptions.retrieve_exceptions()
 
     def find_install_type(self):
         """
@@ -81,6 +78,10 @@ class CheckVersion():
         
         force: if true the VERSION_NOTIFY setting will be ignored and a check will be forced
         """
+
+        # refresh scene exceptions too
+        scene_exceptions.retrieve_exceptions()
+        ui.notifications.message('Updateing scene exceptions')
 
         if not sickbeard.VERSION_NOTIFY and not force:
             logger.log(u"Version checking is disabled, not checking for the newest version")
@@ -330,7 +331,9 @@ class GitUpdateManager(UpdateManager):
             message = "or else you're ahead of master"
 
         elif self._num_commits_behind > 0:
-            message = "you're "+str(self._num_commits_behind)+' commits behind'
+            message = "you're %d commit" % self._num_commits_behind
+            if self._num_commits_behind > 1: message += 's'
+            message += ' behind'
 
         else:
             return

@@ -299,8 +299,9 @@ def findEpisode(episode, manualSearch=False):
         # we use the method from the curProvider to accommodate for the internal join functions
         # this way we do not break the special abilities of the providers e.g. nzbmatrix
         searchStrings = curProvider.get_episode_search_strings(episode)
-        logger.log("All search string permutations (" + curProvider.name + "):" + str(searchStrings))
         """
+        logger.log("All search string permutations (" + curProvider.name + "):" + str(searchStrings))
+               
         try:
             searchStrings = list(set(searchStrings))
         except TypeError:
@@ -321,7 +322,7 @@ def findEpisode(episode, manualSearch=False):
             didSearch = True
 
             # skip non-tv crap
-            curFoundResults = filter(lambda x: show_name_helpers.filterBadReleases(x.name) and show_name_helpers.isGoodResult(x.name, episode.show, season=episode.season), curFoundResults)
+            curFoundResults = filter(lambda x: show_name_helpers.filterBadReleases(x.name, episode.show) and show_name_helpers.isGoodResult(x.name, episode.show, season=episode.season), curFoundResults)
 
             # loop all results and see if any of them are good enough that we can stop searching
             for cur_result in curFoundResults:
@@ -380,7 +381,7 @@ def findSeason(show, season, scene=False):
             for curEp in curResults:
 
                 # skip non-tv crap
-                curResults[curEp] = filter(lambda x:  show_name_helpers.filterBadReleases(x.name) and show_name_helpers.isGoodResult(x.name, show, season=season), curResults[curEp])
+                curResults[curEp] = filter(lambda x:  show_name_helpers.filterBadReleases(x.name, show) and show_name_helpers.isGoodResult(x.name, show, season=season), curResults[curEp])
 
                 if curEp in foundResults:
                     foundResults[curEp] += curResults[curEp]
@@ -456,7 +457,7 @@ def findSeason(show, season, scene=False):
                 # if not, break it apart and add them as the lowest priority results
                 individualResults = nzbSplitter.splitResult(bestSeasonNZB)
 
-                individualResults = filter(lambda x:  show_name_helpers.filterBadReleases(x.name) and show_name_helpers.isGoodResult(x.name, show, season=season), individualResults)
+                individualResults = filter(lambda x:  show_name_helpers.filterBadReleases(x.name, show) and show_name_helpers.isGoodResult(x.name, show, season=season), individualResults)
 
                 for curResult in individualResults:
                     if len(curResult.episodes) == 1:

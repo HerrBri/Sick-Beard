@@ -36,9 +36,13 @@ from name_parser.parser import NameParser, InvalidNameException
 resultFilters = ["sub(pack|s|bed)?", "nlsub(bed|s)?", "swesub(bed)?",
                  "(dir|sample|nfo)fix", "sample", "(dvd)?extras"]
 
-mandatory = ["german"]
+"""all mandatory language codes"""
+langCodes = {
+            "de": "german"
+}        
+  
 
-def filterBadReleases(name):
+def filterBadReleases(name, show):
     """
     Filters out non-english and just all-around stupid releases by comparing them
     to the resultFilters contents.
@@ -57,6 +61,13 @@ def filterBadReleases(name):
     cp = CompleteParser()
     cpr = cp.parse(name)
     parse_result = cpr.parse_result
+    logger.log(u"Language of the show ("+show.name+"): "+show.lang,logger.MESSAGE)
+    
+    
+    if show.lang != "en":
+        mandatory = [(langCodes[show.lang])]
+    else:
+        mandatory = []
     
     # use the extra info and the scene group to filter against
     check_string = ''
@@ -79,10 +90,11 @@ def filterBadReleases(name):
             return False
 
     # if every of the mandatory words are in there, say yes
-    for x in mandatory:
-        if not re.search('(^|[\W_])'+x+'($|[\W_])', check_string, re.I):
-            logger.log(u"Mandatory string not found: "+name+" doesnt contains "+x+", ignoring it", logger.DEBUG)
-            return False
+    if mandatory:
+        for x in mandatory:
+            if not re.search('(^|[\W_])'+x+'($|[\W_])', check_string, re.I):
+                logger.log(u"Mandatory string not found: "+name+" doesnt contains "+x+", ignoring it", logger.DEBUG)
+                return False
 
     return True
 

@@ -130,9 +130,7 @@ class Quality:
     def nameQualityNormal(name):
         checkName = lambda list, func: func([re.search(x, name, re.I) for x in list])
         
-        if checkName(["(pdtv|hdtv|dsr).(xvid|x264)"], all) and not checkName(["(720|1080)[pi]"], all):
         if checkName(["(pdtv|hdtv|dsr|hdtvrip|tvrip).(xvid|x264)"], all) and not checkName(["(720|1080)[pi]"], all):
-        if checkName(["(pdtv|hdtv|dsr|tvrip).(xvid|x264)"], all) and not checkName(["(720|1080)[pi]"], all):
             return Quality.SDTV
         elif checkName(["(dvdrip|bdrip)(.ws)?.(xvid|divx|x264)"], any) and not checkName(["(720|1080)[pi]"], all):
             return Quality.SDDVD
@@ -142,7 +140,7 @@ class Quality:
             return Quality.HDWEBDL
         elif checkName(["720p", "bluray", "x264"], all) or checkName(["720p", "hddvd", "x264"], all):
             return Quality.HDBLURAY
-        elif checkName(["1080p", "bluray", "x264"], all) or checkName(["1080p", "hddvd", "x264"], all):
+        elif checkName(["1080p", "(bluray|hdtv)(.ws)?", "x264"], all) or checkName(["1080p", "hddvd", "x264"], all):
             return Quality.FULLHDBLURAY
         else:
             return Quality.UNKNOWN

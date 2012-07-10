@@ -232,10 +232,8 @@ class GenericProvider:
     def findEpisode (self, episode, manualSearch=False, searchString=None):
 
         self._checkAuth()
-        if searchString:
-            logger.log(u"Searching "+self.name+" for '" + ek.ek(str, searchString) + "'")
-        else:
-            logger.log(u"Searching "+self.name+" for episode " + episode.prettyName(True))
+            
+        logger.log(u"Searching "+self.name+" for episode " + episode.prettyName(True))
 
         self.cache.updateCache()
         results = self.cache.searchCache(episode, manualSearch)

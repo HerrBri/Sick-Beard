@@ -235,12 +235,17 @@ class TVCache():
             sqlResults = myDB.select("SELECT * FROM "+self.providerID)
         else:
             sqlResults = myDB.select("SELECT * FROM "+self.providerID+" WHERE tvdbid = ? AND season = ? AND episodes LIKE ?", [episode.show.tvdbid, episode.scene_season, "%|"+str(episode.scene_episode)+"|%"])
-
+        
         # for each cache entry
         for curResult in sqlResults:
 
+            # get the show object, or if it's not one of our shows then ignore it
+            showObj = helpers.findCertainShow(sickbeard.showList, int(curResult["tvdbid"]))
+            if not showObj:
+                continue
+            
             # skip non-tv crap (but allow them for Newzbin cause we assume it's filtered well)
-            if self.providerID != 'newzbin' and not show_name_helpers.filterBadReleases(curResult["name"]):
+            if self.providerID != 'newzbin' and not show_name_helpers.filterBadReleases(curResult["name"], showObj.lang):
                 continue
 
             # get the show object, or if it's not one of our shows then ignore it

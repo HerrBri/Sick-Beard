@@ -244,9 +244,9 @@ class TVCache():
             showObj = helpers.findCertainShow(sickbeard.showList, int(curResult["tvdbid"]))
             if not showObj:
                 continue
-            
+            logger.log(u"Tv object information: "+str(showObj),logger.DEBUG)
             # skip non-tv crap (but allow them for Newzbin cause we assume it's filtered well)
-            if self.providerID != 'newzbin' and not show_name_helpers.filterBadReleases(curResult["name"], showObj.lang):
+            if self.providerID != 'newzbin' and not show_name_helpers.filterBadReleases(curResult["name"], showObj):
                 continue
 
             # get the show object, or if it's not one of our shows then ignore it

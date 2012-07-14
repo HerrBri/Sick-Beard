@@ -238,7 +238,7 @@ class TVCache():
         
         # for each cache entry
         for curResult in sqlResults:
-
+            logger.log(u"Tvdbid: "+curResult["tvdbid"],logger.DEBUG)
             # get the show object, or if it's not one of our shows then ignore it
             showObj = helpers.findCertainShow(sickbeard.showList, int(curResult["tvdbid"]))
             if not showObj:

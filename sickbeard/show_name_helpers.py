@@ -61,7 +61,7 @@ def filterBadReleases(name, show):
     cp = CompleteParser()
     cpr = cp.parse(name)
     parse_result = cpr.parse_result
-    logger.log(u"Language of the show ("+show.name+"): "+show.lang,logger.MESSAGE)
+    #logger.log(u"Language of the show ("+show.name+"): "+show.lang,logger.MESSAGE)
     
     
     if show.lang != "en":

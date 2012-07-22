@@ -1079,6 +1079,7 @@ def save_config():
     new_config['General']['naming_dates'] = int(NAMING_DATES)
     new_config['General']['naming_anime'] = int(NAMING_ANIME)
     new_config['General']['launch_browser'] = int(LAUNCH_BROWSER)
+    new_config['General']['sys_encoding'] = _CONFIG_SYS_ENCODING
 
     new_config['General']['use_banner'] = int(USE_BANNER)
     new_config['General']['use_listview'] = int(USE_LISTVIEW)

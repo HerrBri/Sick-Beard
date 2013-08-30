@@ -1150,7 +1150,7 @@ class ConfigProviders:
                       tvtorrents_digest=None, tvtorrents_hash=None,
  					  btn_api_key=None,
                       newzbin_username=None, newzbin_password=None,
-                      provider_order=None):
+                      provider_order=None, nzbto_user=None, nzbto_pass=None, nzbto_proxy=None):
 
         results = []
 
@@ -1219,6 +1219,8 @@ class ConfigProviders:
                 sickbeard.FANZUB = curEnabled
             elif curProvider == 'btn':
                 sickbeard.BTN = curEnabled
+            elif curProvider == 'nzbto':
+                sickbeard.NZBTO = curEnabled
             elif curProvider in newznabProviderDict:
                 newznabProviderDict[curProvider].enabled = bool(curEnabled)
             else:
@@ -1237,6 +1239,10 @@ class ConfigProviders:
 
         sickbeard.NEWZBIN_USERNAME = newzbin_username
         sickbeard.NEWZBIN_PASSWORD = newzbin_password
+        
+        sickbeard.NZBTO_USER = nzbto_user.strip()
+        sickbeard.NZBTO_PASS = nzbto_pass.strip()
+        sickbeard.NZBTO_PROXY = nzbto_proxy.strip()
 
         sickbeard.PROVIDER_ORDER = provider_list
 

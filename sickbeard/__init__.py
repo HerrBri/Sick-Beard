@@ -30,7 +30,7 @@ from threading import Lock
 
 # apparently py2exe won't build these unless they're imported somewhere
 from sickbeard import providers, metadata
-from providers import ezrss, tvtorrents, btn, nzbmatrix, nzbsrus, newznab, womble, newzbin, nzbs_org_old, fanzub
+from providers import ezrss, tvtorrents, btn, nzbmatrix, nzbsrus, newznab, womble, newzbin, nzbs_org_old, fanzub, nzbto
 
 from sickbeard import searchCurrent, searchBacklog, showUpdater, versionChecker, properFinder, autoPostProcesser
 from sickbeard import helpers, db, exceptions, show_queue, search_queue, scheduler
@@ -189,6 +189,11 @@ NZBMATRIX_APIKEY = None
 NEWZBIN = False
 NEWZBIN_USERNAME = None
 NEWZBIN_PASSWORD = None
+
+NZBTO = False
+NZBTO_USER = None
+NZBTO_PASS = None
+NZBTO_PROXY = "http://midgard/nzbtoproxy.php?"
 
 FANZUB = False
 
@@ -412,7 +417,7 @@ def initialize(consoleLogging=True):
                 USE_GROWL, GROWL_HOST, GROWL_PASSWORD, USE_PROWL, PROWL_NOTIFY_ONSNATCH, PROWL_NOTIFY_ONDOWNLOAD, PROWL_API, PROWL_PRIORITY, PROG_DIR, NZBMATRIX, NZBMATRIX_USERNAME, \
                 USE_PYTIVO, PYTIVO_NOTIFY_ONSNATCH, PYTIVO_NOTIFY_ONDOWNLOAD, PYTIVO_UPDATE_LIBRARY, PYTIVO_HOST, PYTIVO_SHARE_NAME, PYTIVO_TIVO_NAME, \
                 USE_NMA, NMA_NOTIFY_ONSNATCH, NMA_NOTIFY_ONDOWNLOAD, NMA_API, NMA_PRIORITY, \
-                NZBMATRIX_APIKEY, versionCheckScheduler, VERSION_NOTIFY, PROCESS_AUTOMATICALLY, \
+                NZBMATRIX_APIKEY, NZBTO, NZBTO_USER, NZBTO_PASS, NZBTO_PROXY, versionCheckScheduler, VERSION_NOTIFY, PROCESS_AUTOMATICALLY, \
                 KEEP_PROCESSED_DIR, TV_DOWNLOAD_DIR, TVDB_BASE_URL, MIN_SEARCH_FREQUENCY, \
                 showQueueScheduler, searchQueueScheduler, ROOT_DIRS, \
                 NAMING_SHOW_NAME, NAMING_EP_TYPE, NAMING_MULTI_EP_TYPE, CACHE_DIR, ACTUAL_CACHE_DIR, TVDB_API_PARMS, \
@@ -588,7 +593,12 @@ def initialize(consoleLogging=True):
         NEWZBIN = bool(check_setting_int(CFG, 'Newzbin', 'newzbin', 0))
         NEWZBIN_USERNAME = check_setting_str(CFG, 'Newzbin', 'newzbin_username', '')
         NEWZBIN_PASSWORD = check_setting_str(CFG, 'Newzbin', 'newzbin_password', '')
-
+        
+        NZBTO = bool(check_setting_int(CFG, 'NZBTO', 'nzbto', 0))
+        NZBTO_USER = check_setting_str(CFG, 'NZBTO', 'nzbto_user', '')
+        NZBTO_PASS = check_setting_str(CFG, 'NZBTO', 'nzbto_pass', '')
+        NZBTO_PROXY = check_setting_str(CFG, 'NZBTO', 'nzbto_proxy', 'http://midgard/nzbtoproxy.php?')
+        
         FANZUB = bool(check_setting_int(CFG, 'Fanzub', 'fanzub', 1))
 
         WOMBLE = bool(check_setting_int(CFG, 'Womble', 'womble', 1))
@@ -1139,6 +1149,12 @@ def save_config():
     new_config['Newzbin']['newzbin'] = int(NEWZBIN)
     new_config['Newzbin']['newzbin_username'] = NEWZBIN_USERNAME
     new_config['Newzbin']['newzbin_password'] = NEWZBIN_PASSWORD
+    
+    new_config['NZBTO'] = {}
+    new_config['NZBTO']['nzbto'] = int(NZBTO)
+    new_config['NZBTO']['nzbto_user'] = NZBTO_USER
+    new_config['NZBTO']['nzbto_pass'] = NZBTO_PASS
+    new_config['NZBTO']['nzbto_proxy'] = NZBTO_PROXY
     
     new_config['Fanzub'] = {}
     new_config['Fanzub']['fanzub'] = int(FANZUB)

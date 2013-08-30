@@ -26,6 +26,8 @@ import shutil
 import locale
 import traceback
 
+from httplib import BadStatusLine
+
 from xml.dom.minidom import Node
 
 import sickbeard
@@ -125,19 +127,19 @@ def sanitizeFileName (name):
 
 def getURL (url, headers=[]):
     """
-    Returns a byte-string retrieved from the url provider.
-    """
+Returns a byte-string retrieved from the url provider.
+"""
 
     opener = urllib2.build_opener()
     opener.addheaders = [('User-Agent', USER_AGENT), ('Accept-Encoding', 'gzip,deflate')]
     for cur_header in headers:
         opener.addheaders.append(cur_header)
-    usock = opener.open(url)
-    url = usock.geturl()
-
-    encoding = usock.info().get("Content-Encoding")
 
     try:
+        usock = opener.open(url)
+        url = usock.geturl()
+        encoding = usock.info().get("Content-Encoding")
+
         if encoding in ('gzip', 'x-gzip', 'deflate'):
             content = usock.read()
             if encoding == 'deflate':
@@ -148,15 +150,26 @@ def getURL (url, headers=[]):
 
         else:
             result = usock.read()
-            usock.close()
+
+        usock.close()
+
+    except urllib2.HTTPError, e:
+        logger.log(u"HTTP error " + str(e.code) + " while loading URL " + url, logger.WARNING)
+        return None
+    except urllib2.URLError, e:
+        logger.log(u"URL error " + str(e.reason) + " while loading URL " + url, logger.WARNING)
+        return None
+    except BadStatusLine:
+        logger.log(u"BadStatusLine error while loading URL " + url, logger.WARNING)
+        return None
     except socket.timeout:
-        logger.log(u"Timed out while loading URL "+url, logger.WARNING)
+        logger.log(u"Timed out while loading URL " + url, logger.WARNING)
         return None
     except ValueError:
-        logger.log(u"Unknown error while loading URL "+url, logger.WARNING)
+        logger.log(u"Unknown error while loading URL " + url, logger.WARNING)
         return None
     except Exception:
-        logger.log(u"Unknown exception while loading URL "+url+": "+traceback.format_exc(), logger.WARNING)
+        logger.log(u"Unknown exception while loading URL " + url + ": " + traceback.format_exc(), logger.WARNING)
         return None
 
     return result
@@ -423,7 +436,7 @@ def chmodAsParent(childPath):
         return
 
     childPath_owner = childPathStat.st_uid
-    user_id = os.geteuid()
+    user_id = os.geteuid() #only available on UNIX
 
     if user_id !=0 and user_id != childPath_owner:
         logger.log(u"Not running as root or owner of "+childPath+", not trying to set permissions", logger.DEBUG)
@@ -459,7 +472,7 @@ def fixSetGroupID(childPath):
             return
 
         childPath_owner = childStat.st_uid
-        user_id = os.geteuid()
+        user_id = os.geteuid() #only available on UNIX
 
         if user_id !=0 and user_id != childPath_owner:
             logger.log(u"Not running as root or owner of "+childPath+", not trying to set the set-group-ID", logger.DEBUG)

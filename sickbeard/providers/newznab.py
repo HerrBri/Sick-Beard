@@ -48,6 +48,7 @@ class NewznabProvider(generic.NZBProvider):
 
 		self.url = url
 		self.key = key
+		self.catIDs = None
 		
 		# if a provider doesn't need an api key then this can be false
 		self.needs_auth = True
@@ -58,7 +59,7 @@ class NewznabProvider(generic.NZBProvider):
 		self.default = False
 
 	def configStr(self):
-		return self.name + '|' + self.url + '|' + self.key + '|' + str(int(self.enabled))
+		return self.name + '|' + self.url + '|' + self.key + '|' + self.catIDs + '|' + str(int(self.enabled))
 
 	def imageName(self):
 		if ek.ek(os.path.isfile, ek.ek(os.path.join, sickbeard.PROG_DIR, 'data', 'images', 'providers', self.getID()+'.gif')):
@@ -180,7 +181,7 @@ class NewznabProvider(generic.NZBProvider):
 		params = {"t": "tvsearch",
 				  "maxage": sickbeard.USENET_RETENTION,
 				  "limit": 100,
-				  "cat": '2000'}
+				  "cat": self.catIDs}
 
 		# hack this in for now
 		if self.getID() == 'nzbs_org':
@@ -265,11 +266,14 @@ class NewznabCache(tvcache.TVCache):
 
 		params = {"t": "tvsearch",
 				  "age": sickbeard.USENET_RETENTION,
-				  "cat": '2000'}
+				  "cat": self.provider.catIDs}
 
 		# hack this in for now
-		if self.provider.getID() == 'nzbs_org':
-			params['cat'] += ',5070,5090'
+		#if self.provider.getID() == 'nzbs_org':
+		#	params['cat'] += ',5070,5090'
+		
+		#if self.provider.getID() == 'newzcomplex_org':
+		#	params['cat'] += ',5021,5020'
 
 		if self.provider.key:
 			params['apikey'] = self.provider.key

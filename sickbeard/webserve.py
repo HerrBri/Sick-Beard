@@ -1145,8 +1145,10 @@ class ConfigProviders:
 
 
     @cherrypy.expose
-    def saveProviders(self, nzbmatrix_username=None, nzbmatrix_apikey=None,
-                      nzbs_r_us_uid=None, nzbs_r_us_hash=None, newznab_string=None,
+    #newznab_string=None,
+    def saveProviders(self, 
+                      nzbmatrix_username=None, nzbmatrix_apikey=None,
+                      nzbs_r_us_uid=None, nzbs_r_us_hash=None, newznab_string=None, 
                       tvtorrents_digest=None, tvtorrents_hash=None,
  					  btn_api_key=None,
                       newzbin_username=None, newzbin_password=None,
@@ -1167,7 +1169,7 @@ class ConfigProviders:
             if not curNewznabProviderStr:
                 continue
 
-            curName, curURL, curKey = curNewznabProviderStr.split('|')
+            curName, curURL, curKey, curCatIDs = curNewznabProviderStr.split('|')
 
             newProvider = newznab.NewznabProvider(curName, curURL, curKey)
 
@@ -1178,7 +1180,9 @@ class ConfigProviders:
                 newznabProviderDict[curID].name = curName
                 newznabProviderDict[curID].url = curURL
                 newznabProviderDict[curID].key = curKey
+                newznabProviderDict[curID].catIDs = curCatIDs
             else:
+                newProvider.catIDs = curCatIDs
                 sickbeard.newznabProviderList.append(newProvider)
 
             finishedNames.append(curID)

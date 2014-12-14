@@ -17,7 +17,7 @@
 
 var show_nzb_providers = #if $sickbeard.USE_NZBS then "true" else "false"#;
 #for $curNewznabProvider in $sickbeard.newznabProviderList:
-\$(this).addProvider('$curNewznabProvider.getID()', '$curNewznabProvider.name', '$curNewznabProvider.url', '$curNewznabProvider.key', $int($curNewznabProvider.default), show_nzb_providers);
+\$(this).addProvider('$curNewznabProvider.getID()', '$curNewznabProvider.name', '$curNewznabProvider.url', '$curNewznabProvider.key', '$curNewznabProvider.catIDs', $int($curNewznabProvider.default), show_nzb_providers);
 #end for
 });
 //-->
@@ -116,11 +116,19 @@ var show_nzb_providers = #if $sickbeard.USE_NZBS then "true" else "false"#;
                                 <input class="component-desc newznab_key" type="text" id="${curNewznabProvider.getID()}_hash" value="$curNewznabProvider.key" size="40" />
                             </label>
                         </div>
-</div>
+                        <div class="field-pair">
+                            <label class="clearfix">
+                                <span class="component-title">$curNewznabProvider.name Category IDs to search in</span>
+                                <input class="component-desc newznab_catIDs" type="text" id="${curNewznabProvider.getID()}_catIDs" value="$curNewznabProvider.catIDs" size="40" />
+                            </label>
+                        </div>
+                        
+					</div>
+				</div> <!-- /${curNewznabProvider.getID()}Div //-->
 #end for
 
 <!--
-<div class="providerDiv" id="nzbs_orgDiv">
+					<div class="providerDiv" id="nzbs_orgDiv">
                         <div class="field-pair">
                             <label class="clearfix">
                                 <span class="component-title">NZBs.org UID</span>
@@ -235,7 +243,7 @@ var show_nzb_providers = #if $sickbeard.USE_NZBS then "true" else "false"#;
                 <div id="core-component-group3" class="component-group clearfix">
 
                     <div class="component-group-desc">
-                        <h3>Configure Custom<br />Newznab Providers</h3>
+                        <h3>Configure Custom Newznab Providers</h3>
                         <p>Add and setup custom Newznab providers.</p>
                         <p>Some built-in Newznab providers are already available above.</p>
                     </div>
@@ -274,6 +282,12 @@ var show_nzb_providers = #if $sickbeard.USE_NZBS then "true" else "false"#;
                             <label class="nocheck clearfix">
                                 <span class="component-title">&nbsp;</span>
                                 <span class="component-desc">(leave blank if not required)</span>
+                            </label>
+                        </div>
+                        <div class="field-pair">
+                            <label class="nocheck clearfix">
+                                <span class="component-title">Category IDs to search in</span>
+                                <input class="component-desc" type="text" id="newznab_catIDs" size="40" />
                             </label>
                         </div>
             <div id="newznab_add_div">

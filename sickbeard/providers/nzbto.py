@@ -88,7 +88,7 @@ class NZBto(generic.NZBProvider):
         # (title, url) = super(NZBClubProvider, self)._get_title_and_url(item)
         tmp_title = item.tr.find("td", attrs={"class": "title"}).a.text
         dl = item.find("a", attrs={"title": "NZB erstellen"})
-        tmp_url = "http://nzb.to/inc/ajax/popupdetails.php?n=" + dl["href"].split("?nid=")[1]
+        tmp_url = "http://nzb.to/inc/ajax/popupdetails.php?n=" + dl["href"].split("nid=")[1]
         x = self.session.get(tmp_url)
         tro = BeautifulSoup(x.text)
         pw = tro.find('span', attrs={"style": "color:#ff0000"}).strong.next.next
@@ -101,7 +101,7 @@ class NZBto(generic.NZBProvider):
         #x = self.session.get(tmp_url, stream=True)
         #filename = x.headers["Content-Disposition"].split(";")[1].replace(" filename=", "").replace('"', '')
         #title = filename.replace("TV_", "").replace(".nzb", "")
-        params = {"nid": dl["href"].split("?nid=")[1], "user": sickbeard.NZBTO_USER, "pass": sickbeard.NZBTO_PASS, "rel": title}
+        params = {"nid": dl["href"].split("nid=")[1], "user": sickbeard.NZBTO_USER, "pass": sickbeard.NZBTO_PASS, "rel": title}
         url = self.proxy + urllib.urlencode(params)
         # url = url.replace("_"," ").replace("/nzb view/","/nzb_get/") + ".nzb"
         logger.log( '_get_title_and_url(), returns (%s, %s)' %(title, url), logger.DEBUG)
@@ -122,7 +122,7 @@ class NZBto(generic.NZBProvider):
         params = {"q": term,
                   "sort": "post_date", #max 50
                   "order": "desc", #nospam
-                  "amount": 50, #min 100MB
+                  "amount": 25, #min 100MB
                   }
 
         searchURL = "http://nzb.to/?p=list&" + urllib.urlencode(params)
@@ -140,7 +140,7 @@ class NZBto(generic.NZBProvider):
 
         #searchResult = self.getURL(searchURL,[("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:5.0) Gecko/20100101 Firefox/5.0"),("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),("Accept-Language","de-de,de;q=0.8,en-us;q=0.5,en;q=0.3"),("Accept-Charset","ISO-8859-1,utf-8;q=0.7,*;q=0.7"),("Connection","keep-alive"),("Cache-Control","max-age=0")])
         if curString == "cache":
-            url = "http://nzb.to/?p=list&cat=13&sa_Video-Genre=3221225407&sort=post_date&order=desc&amount=100"
+            url = "http://nzb.to/?p=list&cat=13&sa_Video-Genre=3221225407&sort=post_date&order=desc&amount=50"
             logger.log(url)
             searchResult = self.session.get(url)
             #logger.log(u"{0}".format(searchResult))
@@ -228,7 +228,7 @@ class NNZBtoCache(tvcache.TVCache):
             self.provider.proxy = sickbeard.NZBTO_PROXY
             self.provider.session.post("http://nzb.to/login.php", data={"action": "login", "username": sickbeard.NZBTO_USER, "password": sickbeard.NZBTO_PASS, "bind_ip": "on", "Submit": ".%3AEinloggen%3A.", "ret_url": ""})
 
-        url = "http://nzb.to/?p=list&cat=13&sa_Video-Genre=3221225407&sort=post_date&order=desc&amount=100"
+        url = "http://nzb.to/?p=list&cat=13&sa_Video-Genre=3221225407&sort=post_date&order=desc&amount=50"
 
         urlArgs = {'q': '',
                    "rpp": 50, #max 50

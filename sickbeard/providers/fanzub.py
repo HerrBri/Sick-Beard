@@ -46,7 +46,7 @@ class Fanzub(generic.NZBProvider):
 
         self.cache = FanzubCache(self)
 
-        self.url = 'http://fanzub.com/'
+        self.url = 'http://www.animenzb.com/'
 
     def isEnabled(self):
         return sickbeard.FANZUB

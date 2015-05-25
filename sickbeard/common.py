@@ -146,7 +146,7 @@ class Quality:
             return Quality.RAWHDTV
         elif checkName(["1080p", "hdtv", "(h|x)264"], all) or checkName(["videomann", "1080p"], all):
             return Quality.FULLHDTV
-        elif checkName(["720p", "web.?dl|webrip|webhd(rip)?|netflixhd"], all) or checkName(["720p", "(webhd|itunes)", "(h|x).?264"], all) or checkName(["720p", "(webhd|itunes)", "avc"], all):
+        elif checkName(["720p", "web.?dl|webrip|webhd(rip)?|netflixhd"], all) or checkName(["720p", "(webhd|itunes)", "(h|x).?264"], all) or checkName(["720p", "(webhd|itunes)", "avc"], all) or checkName(["720p", "(webhd|itunes)", "(h|x).?264"], all):
             return Quality.HDWEBDL
         elif checkName(["1080p", "web.?dl|webrip|webhd(rip)?|netflixhd"], all) or checkName(["1080p", "(webhd|itunes)", "(h|x).?264"], all):
             return Quality.FULLHDWEBDL

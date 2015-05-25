@@ -126,11 +126,13 @@ def retrieve_exceptions(localOnly=False):
     # exceptions are stored on github pages
     url = 'http://midgetspy.github.com/sb_tvdb_scene_exceptions/exceptions.txt'
     url2 = 'http://lad1337.github.com/sb_tvdb_scene_exceptions/anime_exceptions.txt'
+    url3 = 'http://cytec.github.com/sb_tvdb_scene_exceptions/exceptions.txt' # german exceptions
     exception_dict = {}
     if not localOnly:
-        exception_dict = _retrieve_exceptions_fetcher(url)
+        exception_dict = _retrieve_exceptions_fetcher(url3)
         exception_dict.update(_retrieve_exceptions_fetcher(url2)) # server anime exceptions
-
+        # exception_dict.update(_retrieve_exceptions_fetcher(url3)) 
+        
     local_exceptions = _retrieve_anidb_mainnames()
     for local_ex in local_exceptions: # anidb xml anime exceptions
         if local_ex in exception_dict:

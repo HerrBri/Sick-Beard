@@ -85,25 +85,35 @@ class NZBto(generic.NZBProvider):
         return [x for x in show_name_helpers.makeSceneSearchString(ep_obj)]
 
     def _get_title_and_url(self, item):
-        # (title, url) = super(NZBClubProvider, self)._get_title_and_url(item)
-        tmp_title = item.tr.find("td", attrs={"class": "title"}).a.text
+        cur_el = item.tr.find("td", attrs={"class": "title"}).find("a")
+        tmp_title = cur_el.text
         dl = item.find("a", attrs={"title": "NZB erstellen"})
-        tmp_url = "http://nzb.to/inc/ajax/popupdetails.php?n=" + dl["href"].split("nid=")[1]
-        x = self.session.get(tmp_url)
+        dl = cur_el
+        tmp_url = "http://nzb.to/inc/ajax/popupdetails.php?n=" + cur_el["href"].split("nid=")[1]
+
+        while True:
+            x = self.session.get(tmp_url)
+
+            if not x.status_code == 200:
+                logger.log('to much hits on nzb.to trying again in 5 seconds', logger.DEBUG)
+                time.sleep(5)
+
+            if x.status_code == 200:
+                break
+
         tro = BeautifulSoup(x.text)
-        pw = tro.find('span', attrs={"style": "color:#ff0000"}).strong.next.next
+        pw = tro.find('span', attrs={"style": "color:#ff0000"})
+        if pw:
+            pw = pw.strong.next.next
+
         if not pw or pw.strip() == "-":
             title = tmp_title
         else:
             title = "%s{{%s}}" % (tmp_title, pw.strip())
 
-        #tmp_url = "http://nzb.to/" + dl["href"];
-        #x = self.session.get(tmp_url, stream=True)
-        #filename = x.headers["Content-Disposition"].split(";")[1].replace(" filename=", "").replace('"', '')
-        #title = filename.replace("TV_", "").replace(".nzb", "")
         params = {"nid": dl["href"].split("nid=")[1], "user": sickbeard.NZBTO_USER, "pass": sickbeard.NZBTO_PASS, "rel": title}
         url = self.proxy + urllib.urlencode(params)
-        # url = url.replace("_"," ").replace("/nzb view/","/nzb_get/") + ".nzb"
+
         logger.log( '_get_title_and_url(), returns (%s, %s)' %(title, url), logger.DEBUG)
         logger.log( 'self.searchString=%s' %(self.searchString), logger.DEBUG)
 
@@ -177,18 +187,23 @@ class NZBto(generic.NZBProvider):
 
         results = []
 
-        for curResult in self._doSearch("(PROPER,REPACK)"):
+        for curResult in self._doSearch("REPACK"):
 
             (title, url) = self._get_title_and_url(curResult)
 
-            pubDate_node = curResult.getElementsByTagName('pubDate')[0]
-            pubDate = helpers.get_xml_text(pubDate_node)
-            dateStr = re.search('(\w{3}, \d{1,2} \w{3} \d{4} \d\d:\d\d:\d\d) [\+\-]\d{4}', pubDate)
+            pubDate_node = curResult.find('td', attrs={'class':'final'}).span
+            if not pubDate_node:
+                logger.log(u"Unable to figure out the date for entry "+title+", skipping it")
+                continue
+            pubDate = pubDate_node['title']
+            #Genaues Datum/Zeit: 09-09-2013 10:41:47
+            dateStr = re.search('.*:\s(\d{2}-\d{2}-\d{4}\s\d{2}:\d{2}:\d{2})', pubDate)
             if not dateStr:
                 logger.log(u"Unable to figure out the date for entry "+title+", skipping it")
                 continue
             else:
-                resultDate = datetime.datetime.strptime(dateStr.group(1), "%a, %d %b %Y %H:%M:%S")
+                #logger.log(u"Proper date for %s is %s" % (title, dateStr.group(1)))
+                resultDate = datetime.datetime.strptime(dateStr.group(1), "%d-%m-%Y %H:%M:%S")
 
             if date == None or resultDate > date:
                 results.append(classes.Proper(title, url, resultDate))
